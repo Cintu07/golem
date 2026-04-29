@@ -153,7 +153,6 @@ private:
             static_cast<float>(bucket_count_) * max_load_factor_);
     }
 
-    // --- Robin Hood insert into a pre-allocated table ---
     // Takes ownership of value as a mutable_value (pair<K,V>) so we can
     // swap it with incumbent slots during displacement.  We use mval() on
     // slots for the same reason.
@@ -224,8 +223,6 @@ private:
             rehash_to(bucket_count_ * 2);
     }
 
-    // --- find helpers ---
-
     size_type find_slot(const K& k) const noexcept
     {
         if (bucket_count_ == 0) return bucket_count_;
@@ -252,7 +249,6 @@ private:
         }
     }
 
-    // --- backward-shift erase ---
     // Shift subsequent elements back to fill the gap, preserving the
     // Robin Hood invariant without tombstones.
     void backward_shift_erase(size_type idx) noexcept
@@ -279,7 +275,6 @@ private:
     }
 
 public:
-    // --- iterator ---
 
     struct iterator
     {
@@ -369,8 +364,6 @@ public:
         bool operator!=(const const_iterator& o) const noexcept { return cur_ != o.cur_; }
     };
 
-    // --- constructors ---
-
     unordered_map() = default;
 
     explicit unordered_map(size_type initial_capacity,
@@ -415,14 +408,10 @@ public:
         other.size_         = 0;
     }
 
-    // --- destructor ---
-
     ~unordered_map() noexcept
     {
         free_slots(slots_, bucket_count_);
     }
-
-    // --- assignment ---
 
     unordered_map& operator=(const unordered_map& other)
     {
@@ -448,8 +437,6 @@ public:
         return *this;
     }
 
-    // --- iterators ---
-
     iterator begin() noexcept
     { return {slots_, slots_ + bucket_count_}; }
 
@@ -465,8 +452,6 @@ public:
     const_iterator cbegin() const noexcept { return begin(); }
     const_iterator cend()   const noexcept { return end(); }
 
-    // --- capacity ---
-
     bool      empty()        const noexcept { return size_ == 0; }
     size_type size()         const noexcept { return size_; }
     size_type bucket_count() const noexcept { return bucket_count_; }
@@ -480,8 +465,6 @@ public:
 
     allocator_type get_allocator() const noexcept
     { return allocator_type(slot_alloc_); }
-
-    // --- rehash and reserve ---
 
     void rehash(size_type n)
     {
@@ -497,8 +480,6 @@ public:
         rehash(static_cast<size_type>(
             static_cast<float>(n) / max_load_factor_) + 1);
     }
-
-    // --- lookup ---
 
     iterator find(const K& k) noexcept
     {
@@ -555,8 +536,6 @@ public:
         return it->second;
     }
 
-    // --- insert ---
-
     std::pair<iterator, bool> insert(const value_type& kv)
     {
         size_type idx = find_slot(kv.first);
@@ -601,8 +580,6 @@ public:
         return insert(std::move(tmp));
     }
 
-    // --- erase ---
-
     size_type erase(const K& k) noexcept
     {
         size_type idx = find_slot(k);
@@ -618,8 +595,6 @@ public:
         return {slots_ + idx, slots_ + bucket_count_};
     }
 
-    // --- clear ---
-
     void clear() noexcept
     {
         for (size_type i = 0; i < bucket_count_; ++i) {
@@ -631,8 +606,6 @@ public:
         size_ = 0;
     }
 
-    // --- swap ---
-
     void swap(unordered_map& other) noexcept
     {
         using std::swap;
@@ -643,8 +616,6 @@ public:
         swap(hasheq_,          other.hasheq_);
         swap(slot_alloc_,      other.slot_alloc_);
     }
-
-    // --- accessors ---
 
     hasher    hash_function() const { return hasher_(); }
     key_equal key_eq()        const { return eq_(); }

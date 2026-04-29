@@ -56,8 +56,6 @@ class optional
 public:
     using value_type = T;
 
-    // --- constructors ---
-
     constexpr optional() noexcept : engaged_(false) {}
 
     constexpr optional(nullopt_t) noexcept : engaged_(false) {}
@@ -112,11 +110,7 @@ public:
         engaged_ = true;
     }
 
-    // --- destructor ---
-
     ~optional() noexcept { destroy_if_engaged(); }
-
-    // --- assignment ---
 
     optional& operator=(nullopt_t) noexcept
     {
@@ -172,8 +166,6 @@ public:
         return *this;
     }
 
-    // --- modifiers ---
-
     template<typename... Args>
         requires std::is_constructible_v<T, Args...>
     T& emplace(Args&&... args)
@@ -213,8 +205,6 @@ public:
             other.destroy_if_engaged();
         }
     }
-
-    // --- observers ---
 
     bool has_value() const noexcept { return engaged_; }
     explicit operator bool() const noexcept { return engaged_; }
@@ -264,8 +254,6 @@ public:
     {
         return engaged_ ? std::move(*ptr()) : static_cast<T>(std::forward<U>(fallback));
     }
-
-    // --- monadic operations ---
 
     // and_then: if engaged, call f(*this) and return its result (must be optional).
     template<typename F>
@@ -357,8 +345,6 @@ public:
     }
 };
 
-// --- free function swap ---
-
 template<typename T>
     requires std::is_move_constructible_v<T> && std::is_swappable_v<T>
 void swap(optional<T>& a, optional<T>& b)
@@ -366,8 +352,6 @@ void swap(optional<T>& a, optional<T>& b)
 {
     a.swap(b);
 }
-
-// --- make_optional ---
 
 template<typename T>
 optional<std::decay_t<T>> make_optional(T&& value)
@@ -380,8 +364,6 @@ optional<T> make_optional(Args&&... args)
 {
     return optional<T>{ in_place, std::forward<Args>(args)... };
 }
-
-// --- comparisons ---
 
 template<typename T, typename U>
 bool operator==(const optional<T>& a, const optional<U>& b)

@@ -178,7 +178,6 @@ class variant
     }
 
 public:
-    // --- default construction: constructs first alternative ---
 
     variant() noexcept(std::is_nothrow_default_constructible_v<detail::nth_type_t<0, Ts...>>)
         requires std::is_default_constructible_v<detail::nth_type_t<0, Ts...>>
@@ -188,8 +187,6 @@ public:
         index_ = 0;
     }
 
-    // --- in_place_type construction ---
-
     template<typename T, typename... Args>
         requires (detail::index_of_v<T, Ts...> < sizeof...(Ts))
               && std::is_constructible_v<T, Args...>
@@ -198,8 +195,6 @@ public:
         detail::construct_at(reinterpret_cast<T*>(storage_), std::forward<Args>(args)...);
         index_ = detail::index_of_v<T, Ts...>;
     }
-
-    // --- in_place_index construction ---
 
     template<std::size_t I, typename... Args>
         requires (I < sizeof...(Ts))
@@ -211,9 +206,7 @@ public:
         index_ = I;
     }
 
-    // --- converting constructor ---
     // Selects the first Ts... type that T implicitly converts to.
-
     template<typename T>
         requires (!std::is_same_v<std::remove_cvref_t<T>, variant>)
     variant(T&& value)
@@ -223,8 +216,6 @@ public:
         detail::construct_at(reinterpret_cast<U*>(storage_), std::forward<T>(value));
         index_ = I;
     }
-
-    // --- copy constructor ---
 
     variant(const variant& other)
         requires (std::is_copy_constructible_v<Ts> && ...)
@@ -240,8 +231,6 @@ public:
             reinterpret_cast<unsigned char(&)[detail::variant_storage_size<Ts...>]>(storage_));
         index_ = other.index_;
     }
-
-    // --- move constructor ---
 
     variant(variant&& other)
         noexcept((std::is_nothrow_move_constructible_v<Ts> && ...))
@@ -259,11 +248,7 @@ public:
         index_ = other.index_;
     }
 
-    // --- destructor ---
-
     ~variant() noexcept { destroy_current(); }
-
-    // --- copy assignment ---
 
     variant& operator=(const variant& other)
         requires (std::is_copy_constructible_v<Ts> && ...)
@@ -299,8 +284,6 @@ public:
         return *this;
     }
 
-    // --- move assignment ---
-
     variant& operator=(variant&& other)
         noexcept((std::is_nothrow_move_constructible_v<Ts> && ...)
               && (std::is_nothrow_move_assignable_v<Ts>    && ...))
@@ -334,8 +317,6 @@ public:
         return *this;
     }
 
-    // --- emplace by type ---
-
     template<typename T, typename... Args>
         requires (detail::index_of_v<T, Ts...> < sizeof...(Ts))
               && std::is_constructible_v<T, Args...>
@@ -347,8 +328,6 @@ public:
         index_ = detail::index_of_v<T, Ts...>;
         return *reinterpret_cast<T*>(storage_);
     }
-
-    // --- emplace by index ---
 
     template<std::size_t I, typename... Args>
         requires (I < sizeof...(Ts))
@@ -363,12 +342,8 @@ public:
         return *reinterpret_cast<T*>(storage_);
     }
 
-    // --- observers ---
-
     std::size_t index() const noexcept { return index_; }
     bool valueless_by_exception() const noexcept { return index_ == variant_npos; }
-
-    // --- swap ---
 
     void swap(variant& other)
         noexcept((std::is_nothrow_move_constructible_v<Ts> && ...)
@@ -387,8 +362,6 @@ public:
             other = std::move(tmp);
         }
     }
-
-    // --- visit (single variant, non-const) ---
 
     template<typename F>
     decltype(auto) visit(F&& f)
@@ -409,8 +382,6 @@ public:
     }
 };
 
-// --- free visit ---
-
 template<typename F, typename... Ts>
 decltype(auto) visit(F&& f, variant<Ts...>& v)
 {
@@ -428,8 +399,6 @@ decltype(auto) visit(F&& f, variant<Ts...>&& v)
 {
     return std::move(v).visit(std::forward<F>(f));
 }
-
-// --- holds_alternative ---
 
 template<typename T, typename... Ts>
 bool holds_alternative(const variant<Ts...>& v) noexcept
@@ -497,8 +466,6 @@ detail::nth_type_t<I, Ts...>&& get(variant<Ts...>&& v)
     return std::move(*p);
 }
 
-// --- get<T> ---
-
 template<typename T, typename... Ts>
 T& get(variant<Ts...>& v)
 {
@@ -517,8 +484,6 @@ T&& get(variant<Ts...>&& v)
     return get<detail::index_of_v<T, Ts...>>(std::move(v));
 }
 
-// --- get_if<I> ---
-
 template<std::size_t I, typename... Ts>
 detail::nth_type_t<I, Ts...>* get_if(variant<Ts...>* v) noexcept
 {
@@ -533,8 +498,6 @@ const detail::nth_type_t<I, Ts...>* get_if(const variant<Ts...>* v) noexcept
     return detail::variant_storage_ptr<I>(*v);
 }
 
-// --- get_if<T> ---
-
 template<typename T, typename... Ts>
 T* get_if(variant<Ts...>* v) noexcept
 {
@@ -546,8 +509,6 @@ const T* get_if(const variant<Ts...>* v) noexcept
 {
     return get_if<detail::index_of_v<T, Ts...>>(v);
 }
-
-// --- free swap ---
 
 template<typename... Ts>
 void swap(variant<Ts...>& a, variant<Ts...>& b)

@@ -113,7 +113,6 @@ private:
     }
 
 public:
-    // --- constructors ---
 
     vector() noexcept(std::is_nothrow_default_constructible_v<Alloc>) = default;
 
@@ -222,15 +221,11 @@ public:
         }
     }
 
-    // --- destructor ---
-
     ~vector() noexcept
     {
         detail::destroy_range(begin_ptr(), begin_ptr() + size_);
         deallocate(begin_ptr(), capacity_);
     }
-
-    // --- assignment ---
 
     vector& operator=(const vector& other)
     {
@@ -290,8 +285,6 @@ public:
         return *this;
     }
 
-    // --- assign helpers ---
-
     void assign(size_type count, const T& value)
     {
         clear();
@@ -322,11 +315,8 @@ private:
     }
 
 public:
-    // --- allocator ---
 
     allocator_type get_allocator() const noexcept { return alloc(); }
-
-    // --- element access ---
 
     reference at(size_type i)
     {
@@ -352,8 +342,6 @@ public:
     T*       data()       noexcept { return begin_ptr(); }
     const T* data() const noexcept { return begin_ptr(); }
 
-    // --- iterators ---
-
     iterator begin()  noexcept { return begin_ptr(); }
     iterator end()    noexcept { return begin_ptr() + size_; }
 
@@ -369,8 +357,6 @@ public:
     const_reverse_iterator rend()    const noexcept { return const_reverse_iterator(begin()); }
     const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(cend()); }
     const_reverse_iterator crend()   const noexcept { return const_reverse_iterator(cbegin()); }
-
-    // --- capacity ---
 
     bool      empty()    const noexcept { return size_ == 0; }
     size_type size()     const noexcept { return size_; }
@@ -401,8 +387,6 @@ public:
         }
         reallocate(size_);
     }
-
-    // --- modifiers ---
 
     void clear() noexcept
     {
@@ -545,16 +529,12 @@ public:
     }
 };
 
-// --- free swap ---
-
 template<typename T, typename Alloc>
 void swap(vector<T, Alloc>& a, vector<T, Alloc>& b)
     noexcept(noexcept(a.swap(b)))
 {
     a.swap(b);
 }
-
-// --- comparisons ---
 
 template<typename T, typename Alloc>
 bool operator==(const vector<T, Alloc>& a, const vector<T, Alloc>& b)

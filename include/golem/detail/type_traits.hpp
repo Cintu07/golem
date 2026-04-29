@@ -6,7 +6,7 @@
 
 namespace golem::detail {
 
-// --- type_list helpers used by variant ---
+// Type list helpers used by variant.
 
 template<typename... Ts>
 struct type_list {};
