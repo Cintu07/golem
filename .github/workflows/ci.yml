@@ -2,9 +2,9 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   pull_request:
-    branches: [main]
+    branches: [master, main]
 
 jobs:
   build-and-test:
@@ -42,3 +42,39 @@ jobs:
       - run: cmake --preset asan
       - run: cmake --build --preset asan
       - run: ctest --preset asan
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: sudo apt-get install -y ninja-build python3-matplotlib python3-numpy
+
+      - name: Configure
+        run: |
+          cmake -S . -B build/bench -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DGOLEM_BUILD_TESTS=OFF \
+            -DGOLEM_BUILD_BENCHMARKS=ON
+
+      - name: Build
+        run: cmake --build build/bench
+
+      - name: Run benchmarks and save CSV
+        run: |
+          mkdir -p results
+          ./build/bench/benchmarks/bench_vector        > results/bench_vector.csv
+          ./build/bench/benchmarks/bench_optional      > results/bench_optional.csv
+          ./build/bench/benchmarks/bench_variant       > results/bench_variant.csv
+          ./build/bench/benchmarks/bench_unordered_map > results/bench_unordered_map.csv
+
+      - name: Plot charts
+        run: python3 scripts/plot_benchmarks.py results/*.csv
+
+      - name: Upload benchmark charts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-charts
+          path: results/*.png
+          if-no-files-found: error
