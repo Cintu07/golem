@@ -66,12 +66,12 @@ def plot_csv(path: str) -> None:
                 ns_to_label(ns_val), ha="center", va="bottom", fontsize=8)
 
     ax.set_ylabel("time (ms, lower is better)")
-    ax.set_title(pathlib.Path(path).stem.replace("_", " "))
+    ax.set_title(pathlib.Path(path).stem.replace("_", " "), pad=28)
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=20, ha="right")
-    ax.legend(loc="upper right")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=2)
     current_top = ax.get_ylim()[1]
-    ax.set_ylim(top=current_top * 1.18)
+    ax.set_ylim(top=current_top * 1.22)
     ax.yaxis.grid(True, linestyle="--", alpha=0.5, zorder=0)
     ax.set_axisbelow(True)
 
