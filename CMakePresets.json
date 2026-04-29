@@ -58,8 +58,8 @@
     { "name": "asan",        "configurePreset": "asan" }
   ],
   "testPresets": [
-    { "name": "debug",       "configurePreset": "debug",       "output": { "outputOnFailure": true } },
-    { "name": "debug-ninja", "configurePreset": "debug-ninja", "output": { "outputOnFailure": true } },
-    { "name": "asan",        "configurePreset": "asan",        "output": { "outputOnFailure": true } }
+    { "name": "debug",       "configurePreset": "debug",       "configuration": "Debug",   "output": { "outputOnFailure": true } },
+    { "name": "debug-ninja", "configurePreset": "debug-ninja", "configuration": "Debug",   "output": { "outputOnFailure": true } },
+    { "name": "asan",        "configurePreset": "asan",        "configuration": "Debug",   "output": { "outputOnFailure": true } }
   ]
 }
