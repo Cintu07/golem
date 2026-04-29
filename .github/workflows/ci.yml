@@ -23,7 +23,10 @@ jobs:
 
       - name: Install Ninja (Windows)
         if: runner.os == 'Windows'
-        run: choco install ninja -y
+        run: |
+          if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+            choco install ninja -y
+          }
 
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
@@ -38,8 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y ninja-build
-      - run: cmake --preset asan
+      - run: sudo apt-get install -y ninja-build clang
+      - run: CC=clang CXX=clang++ cmake --preset asan
       - run: cmake --build --preset asan
       - run: ctest --preset asan
 

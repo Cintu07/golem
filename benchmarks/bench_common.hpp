@@ -20,8 +20,8 @@ template<typename F>
 double time_ns(F&& f, int reps = 7, int inner = 1)
 {
     std::array<double, 16> samples{};
-    int n = (reps < 16) ? reps : 16;
-    for (int i = 0; i < n; ++i) {
+    std::size_t n = (reps < 16) ? static_cast<std::size_t>(reps) : 16u;
+    for (std::size_t i = 0; i < n; ++i) {
         auto t0 = clock::now();
         for (int j = 0; j < inner; ++j) f();
         auto t1 = clock::now();

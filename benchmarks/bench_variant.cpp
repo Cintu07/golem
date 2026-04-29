@@ -24,38 +24,43 @@ int main()
             bench::sink ^= s;
         }));
 
-    golem::variant<int, double> gv(42);
-    std::variant<int, double>   sv(42);
-
     bench::row("visit_1m",
         bench::time_ns([&]{
             std::uint64_t s = 0;
-            for (int i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i) {
+                golem::variant<int, double> v(i);
                 golem::visit([&](auto x){
                     s ^= static_cast<std::uint64_t>(x);
-                }, gv);
+                }, v);
+            }
             bench::sink ^= s;
         }),
         bench::time_ns([&]{
             std::uint64_t s = 0;
-            for (int i = 0; i < N; ++i)
+            for (int i = 0; i < N; ++i) {
+                std::variant<int, double> v(i);
                 std::visit([&](auto x){
                     s ^= static_cast<std::uint64_t>(x);
-                }, sv);
+                }, v);
+            }
             bench::sink ^= s;
         }));
 
     bench::row("get_1m",
         bench::time_ns([&]{
             std::uint64_t s = 0;
-            for (int i = 0; i < N; ++i)
-                s ^= static_cast<std::uint64_t>(golem::get<int>(gv));
+            for (int i = 0; i < N; ++i) {
+                golem::variant<int, double> v(i);
+                s ^= static_cast<std::uint64_t>(golem::get<int>(v));
+            }
             bench::sink ^= s;
         }),
         bench::time_ns([&]{
             std::uint64_t s = 0;
-            for (int i = 0; i < N; ++i)
-                s ^= static_cast<std::uint64_t>(std::get<int>(sv));
+            for (int i = 0; i < N; ++i) {
+                std::variant<int, double> v(i);
+                s ^= static_cast<std::uint64_t>(std::get<int>(v));
+            }
             bench::sink ^= s;
         }));
 }

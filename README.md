@@ -82,6 +82,58 @@ ctest --preset asan
 
 ---
 
+## Benchmarks
+
+All benchmarks run on Linux/aarch64, compiled with Clang 18, `-O2`, median of 7 runs.
+Charts are generated automatically on every CI push and available as a downloadable artifact named `benchmark-charts`.
+
+### optional
+
+| Benchmark | golem | std | ratio |
+|---|---|---|---|
+| construct 1M optionals | 757 µs | 730 µs | 1.04× |
+| access value 1M times | 988 ns | 988 ns | 1.00× |
+| transform value 1M times | 988 ns | 890 ns | 1.11× |
+
+![optional benchmarks](results/bench_optional.png)
+
+### variant
+
+| Benchmark | golem | std | ratio |
+|---|---|---|---|
+| construct int variant 1M | 802 µs | 718 µs | 1.12× |
+| visit 1M variants | 755 µs | 740 µs | 1.02× |
+| get value 1M times | 760 µs | 780 µs | 0.97× |
+
+![variant benchmarks](results/bench_variant.png)
+
+### vector
+
+| Benchmark | golem | std | ratio |
+|---|---|---|---|
+| push_back 100k ints | 1.39 ms | 733 µs | 1.90× |
+| iterate 100k elements | 25.7 µs | 25.9 µs | 0.99× |
+| copy construct 100k | 151 µs | 27 µs | 5.60× |
+| move construct 100k | 113 µs | 27 µs | 4.20× |
+
+Iteration is equal. The copy/move gap is element-wise construction vs `memcpy` — `std::vector` uses `__builtin_memmove` for trivially copyable types, golem does not yet.
+
+![vector benchmarks](results/bench_vector.png)
+
+### unordered_map
+
+| Benchmark | golem | std | ratio |
+|---|---|---|---|
+| insert 100k entries | 24.9 ms | 13.3 ms | 1.87× |
+| find 100k keys | 2.30 ms | 218 µs | 10.5× |
+| erase 50k entries | 10.3 ms | 8.2 ms | 1.26× |
+
+The find gap is expected. `std::unordered_map` uses chained buckets with pointer-stable nodes; the flat Robin Hood table here has better cache behavior in theory but lacks the SIMD metadata probing that makes modern flat maps fast. This is the main target for v2.
+
+![unordered_map benchmarks](results/bench_unordered_map.png)
+
+---
+
 ## Out of scope for v1
 
 - PMR, scoped allocators, fancy pointers
