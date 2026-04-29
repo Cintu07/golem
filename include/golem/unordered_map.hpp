@@ -48,14 +48,27 @@ private:
     // Bucket state stored alongside each slot.
     enum class slot_state : unsigned char { empty, occupied };
 
+    // Internal mutable pair: key is NOT const so we can swap/move slots
+    // during Robin Hood displacement.  Externally we expose value_type
+    // (pair<const K, V>) via val() using a reinterpret_cast, which is safe
+    // because pair<K,V> and pair<const K,V> have identical layout.
+    using mutable_value = std::pair<K, V>;
+
     // A single bucket: state, cached hash (so we do not rehash during
-    // backward-shift erase), and raw storage for value_type.
+    // backward-shift erase), and raw storage for mutable_value.
     struct slot
     {
         slot_state  state   = slot_state::empty;
         std::size_t hash    = 0;
-        alignas(value_type) unsigned char storage[sizeof(value_type)];
+        alignas(mutable_value) unsigned char storage[sizeof(mutable_value)];
 
+        // Internal mutable access: used for construction, destruction, swap.
+        mutable_value*       mval()       noexcept
+        { return reinterpret_cast<mutable_value*>(storage); }
+        const mutable_value* mval() const noexcept
+        { return reinterpret_cast<const mutable_value*>(storage); }
+
+        // External user-facing access: key appears const.
         value_type*       val()       noexcept
         { return reinterpret_cast<value_type*>(storage); }
         const value_type* val() const noexcept
@@ -122,7 +135,7 @@ private:
         if (!p) return;
         for (size_type i = 0; i < n; ++i)
             if (p[i].state == slot_state::occupied)
-                detail::destroy_at(p[i].val());
+                detail::destroy_at(p[i].mval());
         slot_traits::deallocate(slot_alloc_, p, n);
     }
 
@@ -141,10 +154,11 @@ private:
     }
 
     // --- Robin Hood insert into a pre-allocated table ---
-    // Takes ownership of value (caller has already constructed it in temp
-    // storage or built it in-place; here we displace entries as needed).
+    // Takes ownership of value as a mutable_value (pair<K,V>) so we can
+    // swap it with incumbent slots during displacement.  We use mval() on
+    // slots for the same reason.
     void rh_insert_slot(slot* table, size_type cap,
-                        std::size_t h, value_type&& vt)
+                        std::size_t h, mutable_value&& vt)
     {
         size_type idx  = h & (cap - 1);
         size_type dist = 0;
@@ -153,7 +167,7 @@ private:
             slot& s = table[idx];
 
             if (s.state == slot_state::empty) {
-                detail::construct_at(s.val(), std::move(vt));
+                detail::construct_at(s.mval(), std::move(vt));
                 s.state = slot_state::occupied;
                 s.hash  = h;
                 return;
@@ -164,8 +178,8 @@ private:
             if (incumbent_dist < dist) {
                 // Swap incoming entry with incumbent, continue inserting incumbent.
                 using std::swap;
-                swap(h,   s.hash);
-                std::swap(vt, *s.val());
+                swap(h, s.hash);
+                swap(vt, *s.mval());
                 dist = incumbent_dist;
             }
 
@@ -183,7 +197,7 @@ private:
 
         for (size_type i = 0; i < bucket_count_; ++i) {
             if (slots_[i].state == slot_state::occupied) {
-                value_type tmp(std::move(*slots_[i].val()));
+                mutable_value tmp(std::move(*slots_[i].mval()));
                 rh_insert_slot(new_slots, new_cap, slots_[i].hash, std::move(tmp));
             }
         }
@@ -193,7 +207,7 @@ private:
         // Old table: elements already moved out, just free the storage.
         for (size_type i = 0; i < bucket_count_; ++i)
             if (slots_[i].state == slot_state::occupied)
-                detail::destroy_at(slots_[i].val());
+                detail::destroy_at(slots_[i].mval());
         slot_traits::deallocate(slot_alloc_, slots_, bucket_count_);
 
         slots_        = new_slots;
@@ -243,7 +257,7 @@ private:
     // Robin Hood invariant without tombstones.
     void backward_shift_erase(size_type idx) noexcept
     {
-        detail::destroy_at(slots_[idx].val());
+        detail::destroy_at(slots_[idx].mval());
         slots_[idx].state = slot_state::empty;
         --size_;
 
@@ -254,8 +268,8 @@ private:
                 break;
 
             // Move next into idx.
-            detail::construct_at(slots_[idx].val(), std::move(*slots_[next].val()));
-            detail::destroy_at(slots_[next].val());
+            detail::construct_at(slots_[idx].mval(), std::move(*slots_[next].mval()));
+            detail::destroy_at(slots_[next].mval());
             slots_[idx].state = slot_state::occupied;
             slots_[idx].hash  = slots_[next].hash;
             slots_[next].state = slot_state::empty;
@@ -552,8 +566,9 @@ public:
         ensure_capacity_for_insert();
 
         const std::size_t h = hash_key(kv.first);
-        value_type tmp(kv);
-        rh_insert_slot(slots_, bucket_count_, h, std::move(tmp));
+        // Construct mutable_value so rh_insert_slot can swap during displacement.
+        mutable_value mv(kv.first, kv.second);
+        rh_insert_slot(slots_, bucket_count_, h, std::move(mv));
         ++size_;
 
         idx = find_slot(kv.first);
@@ -570,7 +585,9 @@ public:
         ensure_capacity_for_insert();
 
         const std::size_t h = hash_key(k);
-        rh_insert_slot(slots_, bucket_count_, h, std::move(kv));
+        // kv.first is const K; copy key, move value.
+        mutable_value mv(kv.first, std::move(kv.second));
+        rh_insert_slot(slots_, bucket_count_, h, std::move(mv));
         ++size_;
 
         idx = find_slot(k);
@@ -607,7 +624,7 @@ public:
     {
         for (size_type i = 0; i < bucket_count_; ++i) {
             if (slots_[i].state == slot_state::occupied) {
-                detail::destroy_at(slots_[i].val());
+                detail::destroy_at(slots_[i].mval());
                 slots_[i].state = slot_state::empty;
             }
         }

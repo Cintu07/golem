@@ -51,6 +51,8 @@ struct compressed_pair<T, U, true> : private T
 {
     U second;
 
+    compressed_pair() = default;
+
     template<typename T1, typename U1>
     compressed_pair(T1&& t, U1&& u)
         : T(std::forward<T1>(t)), second(std::forward<U1>(u)) {}
@@ -65,6 +67,8 @@ struct compressed_pair<T, U, false>
 {
     T first_;
     U second;
+
+    compressed_pair() = default;
 
     template<typename T1, typename U1>
     compressed_pair(T1&& t, U1&& u)

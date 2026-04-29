@@ -84,7 +84,7 @@ void destroy_active(std::size_t idx, Storage& storage) noexcept
     if constexpr (I < sizeof...(Ts)) {
         if (idx == I) {
             using T = nth_type_t<I, Ts...>;
-            destroy_at(reinterpret_cast<T*>(storage));
+            detail::destroy_at(reinterpret_cast<T*>(storage));
         } else {
             destroy_active<I + 1, Storage, Ts...>(idx, storage);
         }
@@ -98,8 +98,8 @@ void copy_active(std::size_t idx, const Storage& src, Storage& dst)
     if constexpr (I < sizeof...(Ts)) {
         if (idx == I) {
             using T = nth_type_t<I, Ts...>;
-            construct_at(reinterpret_cast<T*>(dst),
-                         *reinterpret_cast<const T*>(src));
+            detail::construct_at(reinterpret_cast<T*>(dst),
+                                 *reinterpret_cast<const T*>(src));
         } else {
             copy_active<I + 1, Storage, Ts...>(idx, src, dst);
         }
@@ -113,8 +113,8 @@ void move_active(std::size_t idx, Storage& src, Storage& dst)
     if constexpr (I < sizeof...(Ts)) {
         if (idx == I) {
             using T = nth_type_t<I, Ts...>;
-            construct_at(reinterpret_cast<T*>(dst),
-                         std::move(*reinterpret_cast<T*>(src)));
+            detail::construct_at(reinterpret_cast<T*>(dst),
+                                 std::move(*reinterpret_cast<T*>(src)));
         } else {
             move_active<I + 1, Storage, Ts...>(idx, src, dst);
         }

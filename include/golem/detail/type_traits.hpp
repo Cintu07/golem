@@ -32,8 +32,12 @@ struct index_of;
 template<typename T, typename Head, typename... Tail>
 struct index_of<T, Head, Tail...>
 {
-    static constexpr std::size_t value =
-        std::is_same_v<T, Head> ? 0 : 1 + index_of<T, Tail...>::value;
+    static constexpr std::size_t value = [] {
+        if constexpr (std::is_same_v<T, Head>)
+            return std::size_t{0};
+        else
+            return std::size_t{1} + index_of<T, Tail...>::value;
+    }();
 };
 
 template<typename T>

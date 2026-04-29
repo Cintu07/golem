@@ -27,7 +27,7 @@ template<typename T>
 constexpr void destroy_range(T* first, T* last) noexcept
 {
     for (; first != last; ++first)
-        destroy_at(first);
+        first->~T();
 }
 
 // Raw aligned storage for one object of type T.
