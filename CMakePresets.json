@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "displayName": "Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GOLEM_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "debug-ninja",
+      "inherits": "debug",
+      "displayName": "Debug (Ninja)",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GOLEM_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "displayName": "Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "GOLEM_BUILD_TESTS": "ON",
+        "GOLEM_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "asan",
+      "inherits": "base",
+      "displayName": "ASan + UBSan",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "GOLEM_BUILD_TESTS": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "debug",       "configurePreset": "debug" },
+    { "name": "debug-ninja", "configurePreset": "debug-ninja" },
+    { "name": "release",     "configurePreset": "release" },
+    { "name": "asan",        "configurePreset": "asan" }
+  ],
+  "testPresets": [
+    { "name": "debug",       "configurePreset": "debug",       "output": { "outputOnFailure": true } },
+    { "name": "debug-ninja", "configurePreset": "debug-ninja", "output": { "outputOnFailure": true } },
+    { "name": "asan",        "configurePreset": "asan",        "output": { "outputOnFailure": true } }
+  ]
+}
