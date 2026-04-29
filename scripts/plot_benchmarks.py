@@ -69,7 +69,9 @@ def plot_csv(path: str) -> None:
     ax.set_title(pathlib.Path(path).stem.replace("_", " "))
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=20, ha="right")
-    ax.legend()
+    ax.legend(loc="upper right")
+    current_top = ax.get_ylim()[1]
+    ax.set_ylim(top=current_top * 1.18)
     ax.yaxis.grid(True, linestyle="--", alpha=0.5, zorder=0)
     ax.set_axisbelow(True)
 
