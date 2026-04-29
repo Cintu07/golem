@@ -1,6 +1,6 @@
 # golem
 
-Four STL types rebuilt from scratch in C++23. No wrappers, no shortcuts — raw storage, manual lifetime, real allocator support.
+Four STL types rebuilt from scratch in C++23. No wrappers, no shortcuts. Raw storage, manual lifetime, real allocator support.
 
 `optional` `vector` `variant` `unordered_map`
 
@@ -13,7 +13,7 @@ Four STL types rebuilt from scratch in C++23. No wrappers, no shortcuts — raw st
 | `golem::variant<Ts...>` | inline storage, `visit`, `get`, `get_if`, `valueless_by_exception` |
 | `golem::unordered_map<K,V>` | flat Robin Hood table, backward-shift erase, no tombstones, hash mixing |
 
-Internals are in `include/golem/detail/` — lifetime primitives, allocator traits, compressed pair with EBO, and type pack utilities for variant.
+Internals are in `include/golem/detail/`. Lifetime primitives, allocator traits, compressed pair with EBO, and type pack utilities for variant.
 
 ## build
 
@@ -40,9 +40,9 @@ Compiled with Clang 18, `-O2`, median of 7 runs on Linux/aarch64. Charts auto-ge
 
 | benchmark | golem | std | ratio |
 |---|---|---|---|
-| construct 1M | 757 µs | 730 µs | 1.04× |
-| access 1M | 988 ns | 988 ns | 1.00× |
-| transform 1M | 988 ns | 890 ns | 1.11× |
+| construct 1M | 757 ï¿½s | 730 ï¿½s | 1.04ï¿½ |
+| access 1M | 988 ns | 988 ns | 1.00ï¿½ |
+| transform 1M | 988 ns | 890 ns | 1.11ï¿½ |
 
 ![optional](results/bench_optional.png)
 
@@ -50,9 +50,9 @@ Compiled with Clang 18, `-O2`, median of 7 runs on Linux/aarch64. Charts auto-ge
 
 | benchmark | golem | std | ratio |
 |---|---|---|---|
-| construct int 1M | 802 µs | 718 µs | 1.12× |
-| visit 1M | 755 µs | 740 µs | 1.02× |
-| get 1M | 760 µs | 780 µs | 0.97× |
+| construct int 1M | 802 ï¿½s | 718 ï¿½s | 1.12ï¿½ |
+| visit 1M | 755 ï¿½s | 740 ï¿½s | 1.02ï¿½ |
+| get 1M | 760 ï¿½s | 780 ï¿½s | 0.97ï¿½ |
 
 ![variant](results/bench_variant.png)
 
@@ -60,12 +60,12 @@ Compiled with Clang 18, `-O2`, median of 7 runs on Linux/aarch64. Charts auto-ge
 
 | benchmark | golem | std | ratio |
 |---|---|---|---|
-| push_back 100k | 1.39 ms | 733 µs | 1.90× |
-| iterate 100k | 25.7 µs | 25.9 µs | 0.99× |
-| copy construct 100k | 151 µs | 27 µs | 5.60× |
-| move construct 100k | 113 µs | 27 µs | 4.20× |
+| push_back 100k | 1.39 ms | 733 ï¿½s | 1.90ï¿½ |
+| iterate 100k | 25.7 ï¿½s | 25.9 ï¿½s | 0.99ï¿½ |
+| copy construct 100k | 151 ï¿½s | 27 ï¿½s | 5.60ï¿½ |
+| move construct 100k | 113 ï¿½s | 27 ï¿½s | 4.20ï¿½ |
 
-Iteration is equal. The copy/move gap is element-wise construction vs memcpy — std uses __builtin_memmove for trivially copyable types.
+Iteration is equal. The copy/move gap is element-wise construction vs memcpy ï¿½ std uses __builtin_memmove for trivially copyable types.
 
 ![vector](results/bench_vector.png)
 
@@ -73,14 +73,11 @@ Iteration is equal. The copy/move gap is element-wise construction vs memcpy — s
 
 | benchmark | golem | std | ratio |
 |---|---|---|---|
-| insert 100k | 24.9 ms | 13.3 ms | 1.87× |
-| find 100k | 2.30 ms | 218 µs | 10.5× |
-| erase 50k | 10.3 ms | 8.2 ms | 1.26× |
+| insert 100k | 24.9 ms | 13.3 ms | 1.87ï¿½ |
+| find 100k | 2.30 ms | 218 ï¿½s | 10.5ï¿½ |
+| erase 50k | 10.3 ms | 8.2 ms | 1.26ï¿½ |
 
 The find gap is the honest cost of no SIMD probing. std uses chained buckets with decades of hardware tuning; a flat table without metadata bytes cannot match that yet.
 
 ![unordered_map](results/bench_unordered_map.png)
 
-## license
-
-MIT. See [LICENSE](LICENSE).
